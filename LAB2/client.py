@@ -52,7 +52,7 @@ class Client():
     # agregar ruido al mensaje, a según cierta probabilidad expresada en errores por bits transmitidos
     def add_noise(self):
         prob = round(random.random(),2) # Gives you a number BETWEEN 0 and 1 as a float
-        if prob == self.err:
+        if prob <= self.err:
             #change a random bit 
             index=random.randint(0, len(self.bit_converter)-1)
             if self.bit_converter[index]==1:
