@@ -91,15 +91,34 @@ class Client():
     def verify(self):
         # Creating Fletcher Checksum message
         mssg = self.bit_converter_recived
+        print("mensaje original \n", mssg)
+        print("")
+
         #fletcher
-        print("mensaje original ", mssg)
         fletcher = FLETCHER(mssg)
-        print("fletcher :", fletcher.encode())
+        print("fletcher \n:", fletcher.encode())
+        print("")
+
         #hamming
         hamming = HAMMING(mssg)
-        print("hamming :", hamming.generate())
-        #crc32
+        print("hamming :\n", hamming.generate())
         crcmsg=mssg.to01()
+        m = len(crcmsg)
+        r = HAMMING.calcRedundantBits(m)
+        arr = HAMMING.posRedundantBits(crcmsg, r)
+        print(arr)
+        # Determine the parity bits
+        #arr = HAMMING.calcParityBits(arr, r)
+        #print(arr)
+        print("Error Data is " + arr)
+        correction = HAMMING.detectError(arr, r)
+        if(correction==0):
+            print("There is no error in the received message.")
+        else:
+            print("The position of error is ",len(arr)-correction+1,"from the left")
+        print("")
+
+        #crc32
         key = '1001'
         print("CRC32:")
         c = CRC32()
