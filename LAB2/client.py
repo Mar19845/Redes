@@ -91,18 +91,19 @@ class Client():
     def verify(self):
         # Creating Fletcher Checksum message
         mssg = self.bit_converter_recived
-        """#fletcher
-        print(mssg)
+        #fletcher
+        print("mensaje original ", mssg)
         fletcher = FLETCHER(mssg)
-        print(fletcher.encode())
+        print("fletcher :", fletcher.encode())
         #hamming
         hamming = HAMMING(mssg)
-        print(hamming.generate())"""
+        print("hamming :", hamming.generate())
         #crc32
+        crcmsg=mssg.to01()
         key = '1001'
+        print("CRC32:")
         c = CRC32()
-        c.encodedData(mssg,key)
-        print('---------------')
+        c.encodedData(crcmsg,key)
         c.reciverSide(c.cdw)
         print('---------------')
         print(c.cdw)

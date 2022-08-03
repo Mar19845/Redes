@@ -1,6 +1,11 @@
 from bitarray import bitarray
 import binascii
 
+"""
+https://www.geeksforgeeks.org/cyclic-redundancy-check-python/
+https://github.com/iamhimanshu0/CRC/blob/master/CRC.py
+https://www.geeksforgeeks.org/hamming-code-implementation-in-python/
+"""
 
 class HAMMING:
   def __init__(self, bits=None):
@@ -70,7 +75,6 @@ class HAMMING:
 
 
 # Import socket module
-
 class CRC32:
     	
 	def __init__(self):
@@ -83,12 +87,15 @@ class CRC32:
 				result.append('0')
 			else:
 				result.append('1')
+
+
 		return  ''.join(result)
 
 
 
 	def crc(self,message, key):
 		pick = len(key)
+
 		tmp = message[:pick]
 
 		while pick < len(message):
@@ -126,7 +133,6 @@ class CRC32:
 			print("Error")
 
 
-
 """
 data = '100100'
 key = '1001'
@@ -136,10 +142,6 @@ print('---------------')
 c.reciverSide(c.cdw)
 print('---------------')
 print(c.cdw)
-
-
-https://www.geeksforgeeks.org/cyclic-redundancy-check-python/
-https://github.com/iamhimanshu0/CRC/blob/master/CRC.py
 """
 #fletcher
 class FLETCHER:
