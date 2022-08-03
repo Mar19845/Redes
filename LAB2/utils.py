@@ -71,73 +71,75 @@ class HAMMING:
 
 # Import socket module
 
-class CRC32: 	
-    import socket	
-    def xor(a, b):
+class CRC32:
+    	
+	def __init__(self):
+		self.cdw = ''
 
-        # initialize result
-        result = []
-        # Traverse all bits, if bits are
-        # same, then XOR is 0, else 1
-        for i in range(1, len(b)):
-            if a[i] == b[i]:
-                result.append('0')
-            else:
-                result.append('1')
+	def xor(self,a,b):
+		result = []
+		for i in range(1,len(b)):
+			if a[i] == b[i]:
+				result.append('0')
+			else:
+				result.append('1')
+		return  ''.join(result)
 
-        return ''.join(result)
+
+
+	def crc(self,message, key):
+		pick = len(key)
+		tmp = message[:pick]
+
+		while pick < len(message):
+			if tmp[0] == '1':
+				tmp = self.xor(key,tmp)+message[pick]
+			else:
+				tmp = self.xor('0'*pick,tmp) + message[pick]
+
+			pick+=1
+
+		if tmp[0] == "1":
+			tmp = self.xor(key,tmp)
+		else:
+			tmp = self.xor('0'*pick,tmp)
+
+		checkword = tmp
+		return checkword
+
+	def encodedData(self,data,key):
+		l_key = len(key)
+		append_data = data + '0'*(l_key-1)
+		remainder = self.crc(append_data,key)
+		codeword = data+remainder
+		self.cdw += codeword
+		print("Remainder: " ,remainder)
+		print("Data: " ,codeword)
+
+	def reciverSide(self,key,data):
+		r = self.crc(data,key)
+		size = len(key)
+		print(r)
+		if r == size*0:
+			print("No Error")
+		else:
+			print("Error")
 
 
 
 """
+data = '100100'
+key = '1001'
+c = CRC()
+c.encodedData(data)
+print('---------------')
+c.reciverSide(c.cdw)
+print('---------------')
+print(c.cdw)
+
+
 https://www.geeksforgeeks.org/cyclic-redundancy-check-python/
 https://github.com/iamhimanshu0/CRC/blob/master/CRC.py
-
-
-    def posRedundantBits(data, r):
-     
-    # Redundancy bits are placed at the positions
-    # which correspond to the power of 2.
-    j = 0
-    k = 1
-    m = len(data)
-    res = ''
- 
-    # If position is power of 2 then insert '0'
-    # Else append the data
-    for i in range(1, m + r+1):
-        if(i == 2**j):
-            res = res + '0'
-            j += 1
-        else:
-            res = res + data[-1 * k]
-            k += 1
- 
-    # The result is reversed since positions are
-    # counted backwards. (m + r+1 ... 1)
-    return res[::-1]
- 
- 
-def calcParityBits(arr, r):
-    n = len(arr)
- 
-    # For finding rth parity bit, iterate over
-    # 0 to r - 1
-    for i in range(r):
-        val = 0
-        for j in range(1, n + 1):
- 
-            # If position has 1 in ith significant
-            # position then Bitwise OR the array value
-            # to find parity bit value.
-            if(j & (2**i) == (2**i)):
-                val = val ^ int(arr[-1 * j])
-                # -1 * j is given since array is reversed
- 
-        # String Concatenation
-        # (0 to n - 2^r) + parity bit + (n - 2^r + 1 to n)
-        arr = arr[:n-(2**i)] + str(val) + arr[n-(2**i)+1:]
-    return arr
 """
 #fletcher
 class FLETCHER:
