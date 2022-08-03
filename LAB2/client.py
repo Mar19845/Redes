@@ -1,4 +1,5 @@
 from bitarray import bitarray
+from utils import *
 import random
 import socket
 import threading
@@ -61,8 +62,6 @@ class Client():
                 self.bit_converter[index] = 1
 
     
-    
-    
            
     def recive_msg_handler(self):
         ##############################
@@ -80,8 +79,7 @@ class Client():
                     # recibir el mensaje en bits y con un algoritmo encontrar o reparar el error del mensaje
                     self.verify()
                     #convertir el msg a string una vez se haya corregido o detectado un error 
-                    self.convert_msg()
-                    
+                    self.convert_msg() 
                     print(self.msg_recived)
                     #print(pickle.loads(msg))
                     
@@ -89,19 +87,30 @@ class Client():
                 pass
             
            
-    # recibir el mensaje en bits y con un algoritmo encontrar o reparar el error del mensaje
+    # #primero convierte a bitsrecibir el mensaje en bits y con un algoritmo encontrar o reparar el error del mensaje
     def verify(self):
-        pass
+        # Creating Fletcher Checksum message
+        mssg = self.bit_converter_recived
+        #fletcher
+        print(mssg)
+        fletcher = FLETCHER(mssg)
+        print(fletcher.encode())
+        #hamming
+        hamming = HAMMING(mssg)
+        print(hamming.generate())
+        #crc32
+        #crc32 = CRC32(mssg)
+        """tabla = mssg + "\n"+obtain_fletcher +"\n"+obtain_ham 
+        f = open("salida.txt","w")
+        f.write(tabla)
+        f.close()"""
+
     #convertir el msg a string una vez se haya corregido o detectado un error      
     def convert_msg(self):
         #convertir el msg a string una vez se haya corregido o detectado un error
         list_of_bytes = self.bit_converter_recived.tolist() # convert the bytes to list
         #convertir bits to string
-        self.msg_recived = bitarray(list_of_bytes).tobytes().decode('utf-8')
-        
-    
-    
-            
+        self.msg_recived = bitarray(list_of_bytes).tobytes().decode('utf-8')       
     
     #connection config for the socket
     def connect(self,host,port):
