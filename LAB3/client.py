@@ -60,6 +60,7 @@ class Client(slixmpp.ClientXMPP):
         for i in self.nodes:
             msg = "echo-" + str(self.jid) + "-" + str(self.users[i]) + "--"+ str(datetime.timestamp(datetime.now())) +"-" + str(i) + "-"
             self.send_message(mto=self.users[i],mbody=msg,mtype='chat')
+            
     def update_graph(self):
         if self.algoritmo == '2':
             for i in self.nodes:
