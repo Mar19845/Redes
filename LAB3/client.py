@@ -15,12 +15,12 @@ import sys
 if sys.platform == 'win32' and sys.version_info >= (3, 8):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-
+logging.basicConfig(level=logging.DEBUG, format=None)
 class Client(slixmpp.ClientXMPP):
-    def __init__(self, jid, password, algorithm, nodo, nodes, users, graph):
-        super().__init__(jid, password)
+    def __init__(self, jid_name, password, algorithm, nodo, nodes, users, graph):
+        super().__init__(jid_name, password)
         self.received = set()
-        self.initialize(jid, password, algorithm, nodo, nodes, users, graph)
+        self.initialize(jid_name, password, algorithm, nodo, nodes, users, graph)
         
         self.schedule(name="echo", callback=self.echo, seconds=10, repeat=True)
         self.schedule(name="update", callback=self.update_graph, seconds=10, repeat=True)
@@ -43,13 +43,13 @@ class Client(slixmpp.ClientXMPP):
         await self.get_roster()
         self.connected_event.set() 
          
-    def initialize(self, jid, password, algoritmo, nodo, nodes, users, graph):
-        self.algoritmo = algoritmo
+    def initialize(self, jid_name, password, algorithm, nodo, nodes, users, graph):
+        self.algorithm = algorithm
         self.users = users
         self.graph = graph
         self.nodo = nodo
         self.nodes = nodes
-        self.jid = jid
+        self.jid_name = jid_name
         self.password = password
     
     async def recived_message(self, msg):
@@ -58,18 +58,19 @@ class Client(slixmpp.ClientXMPP):
             
     def echo(self):
         for i in self.nodes:
-            msg = "echo-" + str(self.jid) + "-" + str(self.users[i]) + "--"+ str(datetime.timestamp(datetime.now())) +"-" + str(i) + "-"
+            msg = "echo|" + str(self.jid_name) + "|" + str(self.users[i]) + "||"+ str(datetime.timestamp(datetime.now())) +"|" + str(i) + "|"
+            print(msg)
             self.send_message(mto=self.users[i],mbody=msg,mtype='chat')
             
     def update_graph(self):
-        if self.algoritmo == '2':
+        if self.algorithm == '1':
             for i in self.nodes:
                 self.graph.nodes[i]["neighbors"] = self.graph.neighbors(i)
             
             #update graph
-            neigh = nx.graph.get_node_attributes(self.graph,'neighbors')
+            neigh = nx.get_node_attributes(self.graph,'neighbors')
 
-        elif self.algoritmo == '3':
+        elif self.algorithm == '2':
             # Updating states table
             for x in self.graph.nodes().data():
                 if x[0] in self.nodes:
@@ -77,19 +78,77 @@ class Client(slixmpp.ClientXMPP):
             for x in self.graph.edges.data('weight'):
                 if x[1] in self.nodes and x[0]==self.nodo:
                     dataedges = x
-            StrNodes = str(dataneighbors) + "|" + str(dataedges)
+            nodes_strings = str(dataneighbors) + "|" + str(dataedges)
             for i in self.nodes:
-                update_msg = "2-" + str(self.jid) + "-" + str(self.users[i]) + "-" + str(self.graph.number_of_nodes()) + "--" + str(self.nodo) + "-" + StrNodes
+                update_msg = "2|" + str(self.jid_name) + "|" + str(self.users[i]) + "|" + str(self.graph.number_of_nodes()) + "||" + str(self.nodo) + "|" + nodes_strings
                 self.send_message(mto=self.users[i],mbody=update_msg,mtype='chat')
     
-    
+    def return_new_msg(self, message):
+        message[4] = message[4] + "," + str(self.nodo)
+        message[3] = str(int(message[3]) - 1)
+        return "|".join(message)
     
     #part of the logic            
     async def send_msg(self, msg):
-        message = msg.split('-')
+        message = msg.split('|')
         
         if message[0] == 'msg':
-            pass
+            
+            if self.algorithm == '1':
+                #DISTANCE VECTOR: SENT TO THE NEIGHBOR WITH THE SHORTEST DISTANCE
+                print('DVR Algorithm\n')
+                print(message)
+                send_to  = message[6].split('*')[1].split('#')
+                send_node = send_to[1]
+                
+                
+                for p,d in self.graph.nodes(data=True):
+                    if p == send_node:
+                        jid_receiver = d['jid']
+                        
+                print('Sending msg to -> ', jid_receiver)
+                
+                #chek if the message is for me or not
+                if message[2] == self.jid_name:
+                    print("msg received -> " +  message[6])
+                else:
+                    if message[3] != '0':
+                        msg_list = message[4].split(',')
+                        if  self.nodo not in msg_list:
+                            new_msg = self.return_new_msg(message)
+                            self.send_message(mto=jid_receiver,mbody=new_msg,mtype='chat')  
+                            # dijkstra distance
+                            
+            elif self.algorithm == '2':
+                print('LSR Algorithm\n')
+                if message[2] == self.jid_name:
+                    print("msg received -> " +  message[6])
+                else:
+                    if int(message[3])>0:
+                        msg_list = message[4].split(',')
+                        if self.nodo not in msg_list:
+                            new_msg = self.return_new_msg(message)
+                            target_users = []
+                            
+                            
+                            for x in self.graph.nodes().data():
+                                    if x[1]["jid"] == message[2]:
+                                        target_users.append(x)
+                            # dijkstra shortest distance
+                            shortest = nx.shortest_path(self.graph, source=self.nodo, target=target_users[0][0])
+                            if len(shortest) > 0:
+                                self.send_message(mto=self.users[shortest[1]],mbody=new_msg,mtype='chat')  
+            elif self.algorithm == '3':
+                print('Flooding Algorithm\n')
+                if message[2] == self.jid_name:
+                     print("msg received -> " +  message[6])
+                else:
+                    if message[3] != '0':
+                        msg_list = message[4].split(',')
+                        if self.nodo not in msg_list:
+                            new_msg = self.return_new_msg(message)
+                            for i in self.nodes:
+                                self.send_message(mto=self.users[i],mbody=new_msg,mtype='chat')  
         elif message[0] == 'echo':
             # get the distance between nodes
             if message[6] == '':
