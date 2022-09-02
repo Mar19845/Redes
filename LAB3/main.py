@@ -37,7 +37,7 @@ async def input_chat():
             
 #creat msg to send           
 def create_msg(xmpp,reciber,msg):
-    return "msg|" + str(xmpp.jid) + "|" + str(reciber) + "|" + str(xmpp.graph.number_of_nodes()) + "||" + str(xmpp.nodo) + "|" + str(msg)
+    return "msg|" + str(xmpp.jid_name) + "|" + str(reciber) + "|" + str(xmpp.graph.number_of_nodes()) + "||" + str(xmpp.nodo) + "|" + str(msg)
 
 
 async def main_loop(xmpp):
@@ -59,7 +59,8 @@ async def main_loop(xmpp):
                         msg = create_msg(xmpp,reciber,msg)
                         graph = xmpp.graph
                         for p, d in xmpp.graph.nodes(data=True):
-                            if d['jid'] == xmpp.jid:
+                            print(d)
+                            if d['jid'] == xmpp.jid_name:
                                 origin_user = p
                             if d['jid'] == reciber:
                                 destiny_user = p
@@ -116,7 +117,8 @@ if __name__ == "__main__":
             nodo = key
             nodes = topo["config"][key]
             
-    print(nodo,nodes)
+    #print(nodo,nodes)
+    #print(names['config'])
     graph = Tree(topo, names).get_graph()
     
 
