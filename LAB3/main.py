@@ -66,6 +66,7 @@ async def main_loop(xmpp):
                                 destiny_user = p
                                 
                         shortest_path=nx.shortest_path(xmpp.graph, origin_user, destiny_user)
+                        print(shortest_path)
                         shortest_path.pop(0)
                         send_to = shortest_path[0]
                         
